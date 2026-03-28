@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self';">
+  <title>Contact — BlurShield</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a10;
+      --card: #111118;
+      --card-border: rgba(255,255,255,0.06);
+      --text: #e4e4f0;
+      --muted: #8b8ba6;
+      --green: #1D9E75;
+      --green-soft: rgba(29,158,117,0.12);
+      --green-border: rgba(29,158,117,0.25);
+      --accent-glow: rgba(29,158,117,0.08);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      overflow-y: auto;
+    }
+
+    .page-wrapper {
+      width: 100%;
+      max-width: 520px;
+      animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Header ─────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      margin-bottom: 16px;
+    }
+    .header-logo img { border-radius: 10px; }
+    .header-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .header-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Card ────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    /* ── Contact item ───────────────────── */
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--card-border);
+      margin-bottom: 10px;
+      transition: all 0.18s ease;
+      cursor: default;
+    }
+    .contact-item:last-child { margin-bottom: 0; }
+    .contact-item:hover {
+      background: var(--accent-glow);
+      border-color: var(--green-border);
+      transform: translateY(-1px);
+    }
+    .contact-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .contact-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    .contact-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      word-break: break-all;
+    }
+    .contact-value a {
+      color: var(--green);
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .contact-value a:hover { opacity: 0.8; }
+
+    /* ── Info notes ──────────────────────── */
+    .info-notes {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .info-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.015);
+      border: 1px solid var(--card-border);
+    }
+    .info-note-icon {
+      flex-shrink: 0;
+      font-size: 14px;
+      margin-top: 1px;
+    }
+
+    /* ── Footer ──────────────────────────── */
+    .footer {
+      text-align: center;
+      padding-top: 12px;
+    }
+    .footer-text {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .footer-link {
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer-link:hover { text-decoration: underline; }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      background: var(--card);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-bottom: 16px;
+    }
+    .back-btn:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+
+    <!-- Back to settings -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <a href="options.html" class="back-btn">← Settings</a>
+      <a href="features.html" class="back-btn">✦ Features</a>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-logo">
+        <img src="icons/icon128.png" width="32" height="32" alt="BlurShield">
+      </div>
+      <div class="header-title">Contact Us</div>
+      <div class="header-sub">Got questions, feedback, or need support?<br>We'd love to hear from you.</div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon" style="background:var(--green-soft);border:1px solid var(--green-border)">📧</div>
+        Get in Touch
+      </div>
+
+      <div class="contact-item" id="email-item">
+        <div class="contact-icon">✉️</div>
+        <div>
+          <div class="contact-label">Email</div>
+          <div class="contact-value">
+            <a href="mailto:blurshield2006@gmail.com" id="email-link">blurshield2006@gmail.com</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <div class="contact-icon">🌐</div>
+        <div>
+          <div class="contact-label">Website</div>
+          <div class="contact-value">
+            <a href="features.html">View all features</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <div class="contact-icon">🛡️</div>
+        <div>
+          <div class="contact-label">Privacy Policy</div>
+          <div class="contact-value">
+            <a href="privacy.html">View privacy policy</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- What to include -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-icon" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2)">💡</div>
+        Tips for Faster Support
+      </div>
+      <div class="info-notes">
+        <div class="info-note">
+          <span class="info-note-icon">🐛</span>
+          <span><strong>Bug reports:</strong> Include the website URL, your Chrome version, and what you expected vs. what happened.</span>
+        </div>
+        <div class="info-note">
+          <span class="info-note-icon">🔑</span>
+          <span><strong>License issues:</strong> Include your license key and the email used for purchase.</span>
+        </div>
+        <div class="info-note">
+          <span class="info-note-icon">💡</span>
+          <span><strong>Feature requests:</strong> Describe the problem you're trying to solve — we're always listening!</span>
+        </div>
+        <div class="info-note">
+          <span class="info-note-icon">⏱️</span>
+          <span><strong>Response time:</strong> We typically reply within 24 hours on business days.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-text">
+        BlurShield v3.0 · Made with 🛡️ for your privacy
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://api.lemonsqueezy.com https://accounts.google.com;">
+  <title>BlurShield</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app" style="display:none">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-wrap">
+        <img src="icons/icon32.png" alt="BlurShield icon" width="22" height="22">
+      </div>
+      <div class="header-text">
+        <div class="header-title">BlurShield</div>
+        <div class="header-status" id="status-text">Loading…</div>
+      </div>
+      <label class="master-toggle">
+        <input type="checkbox" id="master" checked>
+        <span class="toggle-knob"></span>
+      </label>
+    </header>
+
+    <!-- Grace period banner (hidden by default, shown via JS) -->
+    <div id="grace-banner" class="grace-banner" style="display:none"></div>
+
+    <!-- Security score + count bar -->
+    <div class="score-bar" id="score-bar">
+      <div class="score-ring-wrap">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5"/>
+          <circle id="score-ring" cx="28" cy="28" r="22" fill="none" stroke="#1D9E75"
+                  stroke-width="5" stroke-linecap="round"
+                  stroke-dasharray="138" stroke-dashoffset="138"
+                  transform="rotate(-90 28 28)" style="transition:stroke-dashoffset 0.8s ease,stroke 0.4s"/>
+          <text x="28" y="33" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="500" fill="white" id="score-text">—</text>
+        </svg>
+        <div class="score-label">score</div>
+      </div>
+      <div class="score-details">
+        <div class="secret-count-row">
+          <span class="secret-num" id="secret-count">0</span>
+          <span class="secret-label">items protected</span>
+        </div>
+        <div class="severity-pills" id="severity-pills"></div>
+        <button class="rescan-btn" id="rescan">↺ Rescan</button>
+      </div>
+    </div>
+
+    <!-- Whitelisted notice -->
+    <div class="whitelist-notice" id="whitelist-notice" style="display:none">
+      <span>⊘</span> This domain is whitelisted — BlurShield is paused here
+      <button id="unwhitelist-btn">Remove</button>
+    </div>
+    <div id="popup-feedback" class="popup-feedback" style="display:none"></div>
+
+    <!-- Detected list -->
+    <div class="section" id="detected-wrap" style="display:none">
+      <div class="sec-label">Detected on this page</div>
+      <div id="detected-list"></div>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Toggles -->
+    <div class="section">
+      <div class="sec-label">Auto-detect</div>
+      <div class="toggle-list">
+        <div class="trow"><div class="tinfo"><div class="tname">API keys &amp; tokens</div><div class="tdesc">55 patterns including AWS, GitHub, Stripe</div></div><label class="mini-toggle"><input type="checkbox" id="t-keys" checked><span></span></label></div>
+        <div class="trow"><div class="tinfo"><div class="tname">Private keys &amp; certs</div><div class="tdesc">RSA, EC, OpenSSH, PGP key blocks</div></div><label class="mini-toggle"><input type="checkbox" id="t-crypto" checked><span></span></label></div>
+        <div class="trow"><div class="tinfo"><div class="tname">Email addresses</div><div class="tdesc">All emails on page</div></div><label class="mini-toggle"><input type="checkbox" id="t-emails" checked><span></span></label></div>
+        <div class="trow"><div class="tinfo"><div class="tname">PII (phone, credit cards)</div><div class="tdesc">Personal identifiable information</div></div><label class="mini-toggle"><input type="checkbox" id="t-pii" checked><span></span></label></div>
+        <div class="trow"><div class="tinfo"><div class="tname">Reveal on hover</div><div class="tdesc">Hover to temporarily unmask</div></div><label class="mini-toggle"><input type="checkbox" id="t-hover"><span></span></label></div>
+      </div>
+    </div>
+
+    <!-- Blur intensity -->
+    <div class="section">
+      <div class="sec-label">Blur intensity</div>
+      <div class="intensity-row">
+        <input type="range" id="intensity" min="3" max="14" value="7" step="1">
+        <span class="intensity-val" id="intensity-val">7px</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="section">
+      <div class="sec-label">Actions</div>
+      <div class="action-grid">
+        <button class="action-btn" id="zone-btn">
+          <span class="action-icon">⊡</span>
+          <span>Blur element</span>
+        </button>
+        <button class="action-btn" id="reveal-btn">
+          <span class="action-icon">◎</span>
+          <span>Reveal all</span>
+        </button>
+        <button class="action-btn" id="clear-zones-btn">
+          <span class="action-icon">⊠</span>
+          <span>Clear zone</span>
+        </button>
+        <button class="action-btn" id="options-btn">
+          <span class="action-icon">⚙</span>
+          <span>Settings</span>
+        </button>
+        <button class="action-btn action-btn--hero" id="prescan-btn">
+          <span class="action-icon">🛡</span>
+          <span>Pre-Meeting Scan</span>
+        </button>
+        <button class="action-btn" id="meeting-btn">
+          <span class="action-icon">🎥</span>
+          <span>Meeting Mode</span>
+        </button>
+        <button class="action-btn" id="screenshot-btn">
+          <span class="action-icon">📸</span>
+          <span>Screenshot</span>
+        </button>
+        <button class="action-btn" id="custom-patterns-btn">
+          <span class="action-icon">✨</span>
+          <span>Custom Patterns</span>
+        </button>
+        <button class="action-btn action-btn--preview" id="preview-risk-btn">
+          <span class="action-icon">⚠️</span>
+          <span>Preview Risk</span>
+        </button>
+        <button class="action-btn" id="clear-preview-btn">
+          <span class="action-icon">✕</span>
+          <span>Clear Preview</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Shortcuts — 2×2 grid so all 4 fit within 340px popup -->
+    <div class="shortcuts-row">
+      <div class="shortcut-item">
+        <span class="shortcut-keys" id="toggle-shortcut">Alt+Shift+B</span>
+        <span>Toggle</span>
+      </div>
+      <div class="shortcut-item">
+        <span class="shortcut-keys" id="reveal-shortcut">Alt+Shift+U</span>
+        <span>Reveal all</span>
+      </div>
+      <div class="shortcut-item">
+        <span class="shortcut-keys" id="meeting-shortcut">Alt+Shift+M</span>
+        <span>Meeting</span>
+      </div>
+      <div class="shortcut-item">
+        <span class="shortcut-keys" id="preview-shortcut">Alt+Shift+K</span>
+        <span>Preview Risk</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+      <span class="footer-version">v3.0</span>
+      <span class="footer-dot">·</span>
+      <a href="#" id="patterns-link" class="footer-link">Pattern library</a>
+      <span class="footer-dot">·</span>
+      <a href="#" id="stats-link" class="footer-link">Stats</a>
+      <span class="footer-dot">·</span>
+      <a href="contact.html" target="_blank" class="footer-link">Contact</a>
+      <span class="footer-dot">·</span>
+      <a href="features.html" target="_blank" class="footer-link">Features</a>
+      <span class="pro-badge" id="pro-badge" style="display:none">PRO</span>
+    </div>
+
+  </div>
+
+  <!-- Trial expired / upgrade screen (hidden by default) -->
+  <div id="upgrade-screen" style="display:none">
+    <div class="upgrade-header">
+      <div class="upgrade-logo">
+        <img src="icons/icon32.png" width="22" height="22" alt="BlurShield">
+      </div>
+      <div class="upgrade-title">BlurShield</div>
+    </div>
+    <div class="upgrade-body">
+      <div class="upgrade-icon-wrap">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect width="48" height="48" rx="12" fill="#1D1D28"/>
+          <path d="M24 8L38 14V26Q38 36 24 42Q10 36 10 26V14Z" fill="#1D9E75" opacity="0.2" stroke="#1D9E75" stroke-width="1.5"/>
+          <path d="M24 8L38 14V26Q38 36 24 42Q10 36 10 26V14Z" fill="none" stroke="#1D9E75" stroke-width="1.5"/>
+          <rect x="18" y="22" width="12" height="3" rx="1.5" fill="#1D9E75"/>
+          <rect x="18" y="28" width="8" height="2.5" rx="1.25" fill="#1D9E75" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="upgrade-heading" id="upgrade-heading">Your 7-day trial has ended</div>
+      <div class="upgrade-sub">Subscribe to Pro to keep BlurShield protecting your screens</div>
+
+      <div class="upgrade-features">
+        <div class="uf-item"><span class="uf-check">✓</span><span>55 patterns — AWS, GitHub, Stripe, OpenAI + 51 more</span></div>
+        <div class="uf-item"><span class="uf-check">✓</span><span>Unlimited custom blur zones</span></div>
+        <div class="uf-item"><span class="uf-check">✓</span><span>Security score + severity badges</span></div>
+        <div class="uf-item"><span class="uf-check">✓</span><span>Recording detection banner</span></div>
+        <div class="uf-item"><span class="uf-check">✓</span><span>Zero data leaves your browser</span></div>
+      </div>
+
+      <div class="upgrade-pricing">
+        <div class="price-opt" id="pick-monthly">
+          <div class="price-amt">$5<span>/mo</span></div>
+          <div class="price-label">Monthly</div>
+        </div>
+        <div class="price-divider">or</div>
+        <div class="price-opt best" id="pick-annual">
+          <div class="price-badge">Best value</div>
+          <div class="price-amt">$39<span>/yr</span></div>
+          <div class="price-label">Save 35%</div>
+        </div>
+      </div>
+
+      <button class="btn-upgrade" id="btn-upgrade">Get Pro — Start now →</button>
+
+      <div class="license-section">
+        <div class="license-label">Already have a license key?</div>
+        <div class="license-row">
+          <input type="text" id="license-input" placeholder="Paste your license key…" spellcheck="false">
+          <button id="license-submit">Activate</button>
+        </div>
+        <div class="license-msg" id="license-msg"></div>
+      </div>
+
+      <div class="switch-account-section" style="margin-top: 24px; text-align: center;">
+        <a href="#" id="switch-account-link" style="color: #ffffff; font-weight: 500; font-size: 12px; text-decoration: underline; transition: opacity 0.15s; opacity: 0.9;">
+          Sign out / Switch account
+        </a>
+      </div>
+    </div>
+  </div>
+  <script src="app-config.js"></script>
+  <!-- Login screen -->
+  <div id="login-screen" style="display:none">
+    <div class="login-wrap">
+      <div class="login-logo">
+        <img src="icons/icon128.png" width="56" height="56" alt="BlurShield">
+      </div>
+      <div class="login-title">BlurShield</div>
+      <div class="login-sub">Sign in to start your free 7-day trial</div>
+
+      <div class="login-features">
+        <div class="lf-item"><span class="lf-check">✓</span><span>7 days full access — no card needed</span></div>
+        <div class="lf-item"><span class="lf-check">✓</span><span>32 patterns during trial (55 with Pro) — AWS, GitHub, Stripe, OpenAI</span></div>
+        <div class="lf-item"><span class="lf-check">✓</span><span>Your trial is tied to your account — can't be reset</span></div>
+        <div class="lf-item"><span class="lf-check">✓</span><span>Zero data leaves your browser during scanning</span></div>
+      </div>
+
+      <button id="google-signin-btn" class="btn-google">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0">
+          <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+          <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+          <path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
+          <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.962L3.964 6.294C4.672 4.169 6.656 3.58 9 3.58z" fill="#EA4335"/>
+        </svg>
+        <span id="signin-btn-text">Continue with Google</span>
+      </button>
+
+      <div id="login-error" class="login-error" style="display:none"></div>
+
+      <div class="login-note">
+        By continuing you agree to our
+        <a href="privacy.html" target="_blank">Privacy Policy</a>.
+        Already have a license? <a href="#" id="skip-to-license">Enter license key</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="firebase.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

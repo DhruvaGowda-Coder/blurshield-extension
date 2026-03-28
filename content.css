@@ -1,0 +1,188 @@
+/* BlurShield v3.0.1 — Content Styles */
+@property --bs-blur {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 7px;
+}
+
+:root { 
+  --bs-blur: 7px; 
+  transition: --bs-blur 0.15s ease-out !important;
+}
+
+.bs-blur {
+  filter: blur(var(--bs-blur)) !important;
+  user-select: none !important;
+  cursor: pointer !important;
+  border-radius: 4px;
+  transition: filter 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease !important;
+}
+.bs-blur:hover { filter: blur(var(--bs-blur)) !important; background-color: rgba(255,255,255,0.05) !important; }
+.bs-blur.bs-revealed { filter: blur(0px) !important; transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease !important; }
+.bs-zone-selected.bs-revealed {
+  filter: blur(0px) !important;
+  outline: 2px dotted #22c55e !important;
+  outline-offset: 3px !important;
+  transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.bs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+  pointer-events: none;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  white-space: nowrap;
+}
+.bs-badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Custom zone highlight (when selecting) */
+.bs-zone-hover {
+  outline: 2px solid #22c55e !important;
+  outline-offset: 2px !important;
+  cursor: crosshair !important;
+  border-radius: 3px;
+}
+.bs-zone-selected {
+  filter: blur(var(--bs-blur)) !important;
+  outline: 1.5px dashed #22c55e !important;
+  outline-offset: 2px !important;
+  user-select: none !important;
+  cursor: pointer !important;
+  transition: filter 0.25s ease !important;
+}
+.bs-precheck-focus {
+  outline: 3px solid #f59e0b !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25) !important;
+  animation: bs-precheck-pulse 1.2s ease-in-out 3;
+}
+@keyframes bs-precheck-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18); }
+  50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.32); }
+}
+
+/* Toast notification */
+.bs-toast {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 2147483647 !important;
+  width: 320px;
+  background: rgba(13, 13, 20, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: #e2e2f0;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02) inset;
+  animation: bs-slide-in 0.5s cubic-bezier(0.2, 1.2, 0.3, 1);
+  pointer-events: all;
+}
+@keyframes bs-slide-in {
+  from { transform: translateX(120%) scale(0.95); opacity: 0; }
+  to   { transform: translateX(0) scale(1); opacity: 1; }
+}
+.bs-toast-row { display: flex; align-items: center; gap: 10px; }
+.bs-toast-icon {
+  width: 30px; height: 30px; flex-shrink: 0;
+  background: #1D9E75; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.bs-toast-title { font-size: 13px; font-weight: 600; color: #fff; }
+.bs-toast-sub { font-size: 11px; color: #6b7280; margin-top: 2px; }
+.bs-toast-close {
+  margin-left: auto; cursor: pointer; color: #4b5563;
+  font-size: 18px; line-height: 1; flex-shrink: 0;
+  transition: color 0.15s;
+}
+.bs-toast-close:hover { color: #9ca3af; }
+.bs-toast-pills {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px;
+}
+.bs-toast-pill {
+  font-size: 10px; font-weight: 600; padding: 2px 7px;
+  border-radius: 4px; border: 0.5px solid;
+}
+
+/* Security score ring */
+.bs-score-ring { animation: bs-ring-fill 1s ease forwards; }
+@keyframes bs-ring-fill { from { stroke-dashoffset: 100; } }
+
+/* Zone selector crosshair cursor overlay */
+.bs-selecting * { cursor: crosshair !important; }
+
+.bs-erasing * { cursor: default !important; }
+.bs-zone-hover-erase {
+  outline: 3px solid #ef4444 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 2px rgba(127, 29, 29, 0.28) !important;
+  cursor: pointer !important;
+  border-radius: 4px;
+}
+.bs-zone-selected.bs-zone-hover-erase,
+.bs-zone-selected.bs-revealed.bs-zone-hover-erase {
+  outline: 3px solid #ef4444 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 2px rgba(127, 29, 29, 0.28) !important;
+}
+
+/* Recording indicator */
+.bs-recording-banner {
+  position: fixed !important;
+  top: 10px !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  z-index: 2147483647 !important;
+  background: #0d0d14;
+  border: 0.5px solid rgba(239,68,68,0.4);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  animation: bs-pulse-border 2s ease infinite;
+}
+@keyframes bs-pulse-border {
+  0%,100% { border-color: rgba(239,68,68,0.4); }
+  50% { border-color: rgba(239,68,68,0.8); }
+}
+.bs-rec-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #ef4444;
+  animation: bs-blink 1.2s ease infinite;
+}
+@keyframes bs-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* Meeting Mode — blur entire page content */
+html.bs-meeting-mode body * {
+  filter: blur(var(--bs-blur, 7px)) !important;
+  transition: filter 0.2s ease !important;
+}
+html.bs-meeting-mode .bs-recording-banner,
+html.bs-meeting-mode .bs-toast,
+html.bs-meeting-mode .bs-meeting-banner {
+  filter: none !important;
+}

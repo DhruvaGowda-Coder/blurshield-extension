@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://api.lemonsqueezy.com https://accounts.google.com;">
+  <title>BlurShield Settings</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0b0b10;--bg2:#111118;--bg3:#18181f;--bg4:#1f1f28;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+      --text:#e4e4f0;--muted:#5a5a72;--dim:#38384a;
+      --green:#1D9E75;--red:#ef4444;--amber:#f59e0b;--purple:#8b5cf6;
+      --font:'Segoe UI Variable','Segoe UI','Helvetica Neue',sans-serif;
+      --mono:'Cascadia Mono','Consolas','SF Mono',monospace;
+    }
+    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;max-width:900px;margin:0 auto;min-height:100vh}
+    .sidebar{width:200px;flex-shrink:0;padding:24px 0;border-right:0.5px solid var(--border);position:sticky;top:0;height:100vh}
+    .logo{display:flex;align-items:center;gap:10px;padding:0 20px 20px;border-bottom:0.5px solid var(--border);margin-bottom:8px}
+    .logo-icon{width:28px;height:28px;border-radius:7px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .logo-icon img{display:block;width:100%;height:100%;object-fit:cover}
+    .logo-name{font-size:14px;font-weight:600}
+    .logo-ver{font-size:10px;color:var(--muted);font-family:var(--mono)}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:9px 20px;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.15s;border-left:2px solid transparent}
+    .nav-item:hover{color:var(--text);background:var(--bg2)}
+    .nav-item.active{color:var(--text);border-left-color:var(--green);background:var(--bg2)}
+    .nav-icon{display:flex;align-items:center;justify-content:center;width:18px;height:18px;opacity:0.6;transition:opacity 0.15s;}
+    .nav-item:hover .nav-icon, .nav-item.active .nav-icon {opacity:1;color:var(--green)}
+    .main{flex:1;padding:32px 40px;overflow-y:auto}
+    .page{display:none}.page.active{display:block}
+    .page-title{font-size:20px;font-weight:600;margin-bottom:4px}
+    .page-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+    .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+    .card-title{font-size:13px;font-weight:600;margin-bottom:12px}
+    .setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--border)}
+    .setting-row:last-child{border-bottom:none;padding-bottom:0}
+    .setting-row:first-child{padding-top:0}
+    .setting-info{flex:1}
+    .setting-name{font-size:13px;color:var(--text)}
+    .setting-desc{font-size:11px;color:var(--muted);margin-top:2px}
+    .toggle{position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .ttrack{position:absolute;inset:0;background:var(--bg4);border:0.5px solid var(--border2);border-radius:10px;transition:background 0.2s}
+    .ttrack::after{content:'';position:absolute;top:2.5px;left:2.5px;width:14px;height:14px;border-radius:50%;background:var(--dim);transition:transform 0.2s,background 0.2s}
+    .toggle input:checked+.ttrack{background:var(--green);border-color:var(--green)}
+    .toggle input:checked+.ttrack::after{background:#fff;transform:translateX(16px)}
+
+    /* Stats */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+    .stat-card{background:var(--bg3);border:0.5px solid var(--border);border-radius:8px;padding:14px}
+    .stat-num{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--text);margin-bottom:4px}
+    .stat-label{font-size:11px;color:var(--muted)}
+    .chart-bar-wrap{display:flex;flex-direction:column;gap:3px}
+    .chart-row{display:flex;align-items:center;gap:8px;font-size:11px}
+    .chart-label{width:60px;color:var(--muted);font-family:var(--mono);font-size:10px;text-align:right}
+    .chart-bar-track{flex:1;height:14px;background:var(--bg4);border-radius:3px;overflow:hidden}
+    .chart-bar-fill{height:100%;background:var(--green);border-radius:3px;transition:width 0.6s ease}
+    .chart-count{width:30px;color:var(--muted);font-family:var(--mono);font-size:10px}
+
+    /* Whitelist */
+    .domain-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+    .domain-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;font-size:13px}
+    .domain-remove{font-size:11px;color:var(--red);cursor:pointer;background:rgba(239,68,68,0.1);border:0.5px solid rgba(239,68,68,0.2);border-radius:4px;padding:2px 8px}
+    .add-domain-row{display:flex;gap:8px}
+    input[type=text]{background:var(--bg4);border:0.5px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:13px;padding:8px 12px;flex:1;outline:none;transition:border-color 0.15s}
+    input[type=text]:focus{border-color:var(--green)}
+    .btn{font-family:var(--font);font-size:13px;font-weight:500;padding:8px 16px;border-radius:6px;cursor:pointer;transition:all 0.15s;border:none}
+    .btn-primary{background:var(--green);color:#fff}.btn-primary:hover{opacity:0.85}
+    .btn-ghost{background:var(--bg4);color:var(--muted);border:0.5px solid var(--border2)}.btn-ghost:hover{color:var(--text)}
+
+    /* Patterns */
+    .pattern-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .pattern-card{padding:10px 12px;background:var(--bg3);border:0.5px solid var(--border);border-radius:6px}
+    .pattern-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:3px}
+    .pattern-svc{font-size:10px;color:var(--muted);font-family:var(--mono)}
+    .pattern-sev{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;margin-top:4px}
+    .empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+    .pro-tag{display:inline-block;background:rgba(29,158,117,0.15);color:var(--green);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;cursor:pointer}
+    .pro-locked-box{padding:20px;border:0.5px solid var(--border);border-radius:8px;background:var(--bg3);text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;transition:border-color 0.15s;}
+    .pro-locked-box:hover{border-color:var(--green)}
+
+    /* Keyboard Shortcut Recorder */
+    .shortcut-recorder-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--border)}
+    .shortcut-recorder-row:last-of-type{border-bottom:none}
+    .sck-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
+    .sck-input{
+      font-family:var(--mono);font-size:12px;color:var(--text);
+      background:var(--bg4);border:0.5px solid var(--border2);border-radius:6px;
+      padding:5px 12px;min-width:130px;text-align:center;cursor:pointer;
+      user-select:none;transition:border-color 0.15s,box-shadow 0.15s;outline:none;
+    }
+    .sck-input:hover{border-color:rgba(255,255,255,0.25)}
+    .sck-input.recording{
+      border-color:var(--amber);box-shadow:0 0 0 2px rgba(245,158,11,0.18);
+      color:var(--amber);animation:bs-sck-pulse 1s ease infinite;
+    }
+    @keyframes bs-sck-pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+    .sck-reset{
+      background:none;border:0.5px solid var(--border2);border-radius:5px;
+      color:var(--muted);font-size:13px;cursor:pointer;padding:4px 8px;
+      transition:color 0.12s,border-color 0.12s;
+    }
+    .sck-reset:hover{color:var(--text);border-color:rgba(255,255,255,0.25)}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><img src="icons/icon32.png" alt="BlurShield icon"></div>
+      <div><div class="logo-name">BlurShield</div><div class="logo-ver">v3.0.0</div></div>
+    </div>
+    <div class="nav-item active" data-page="stats"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>Dashboard</div>
+    <div class="nav-item" data-page="settings"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>Settings</div>
+    <div class="nav-item" data-page="whitelist"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></span>Whitelist</div>
+    <div class="nav-item" data-page="patterns"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>Patterns</div>
+    <div class="nav-item" data-page="about"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>About</div>
+    <a class="nav-item" href="contact.html" target="_blank" style="text-decoration:none;color:inherit"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></span>Contact</a>
+    <div class="nav-item" data-page="subscription"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>Subscription</div>
+    <!-- Pro upgrade nudge in sidebar -->
+    <div id="sidebar-pro-nudge" style="display:none;margin:12px 14px 0;padding:12px;background:rgba(29,158,117,0.08);border:0.5px solid rgba(29,158,117,0.25);border-radius:8px;cursor:pointer;transition:border-color 0.15s" data-page="subscription">
+      <div style="font-size:11px;font-weight:600;color:#1D9E75;margin-bottom:4px">✦ Upgrade to Pro</div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.4">Unlock all 55 patterns, full stats, recording banner & more</div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- Stats -->
+    <div class="page active" id="page-stats">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Your protection stats over the last 7 days</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="total-blurred">—</div><div class="stat-label">Secrets blurred (all time)</div></div>
+        <div class="stat-card"><div class="stat-num" id="total-reveals">—</div><div class="stat-label">Times revealed</div></div>
+        <div class="stat-card"><div class="stat-num" id="active-days">—</div><div class="stat-label">Active days</div></div>
+        <div class="stat-card"><div class="stat-num" id="custom-zones">—</div><div class="stat-label">Custom zones saved</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Daily activity (last 7 days)</div>
+        <div class="chart-bar-wrap" id="daily-chart"></div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="page" id="page-settings">
+      <div class="page-title">Settings</div>
+      <div class="page-sub">Customise how BlurShield protects you</div>
+      <div class="card">
+        <div class="card-title">Detection</div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">API keys & tokens</div><div class="setting-desc">AWS, GitHub, Stripe, OpenAI, and more</div></div><label class="toggle"><input type="checkbox" id="s-keys" checked><span class="ttrack"></span></label></div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Private keys & certificates</div><div class="setting-desc">RSA, EC, OpenSSH, PGP key blocks</div></div><label class="toggle"><input type="checkbox" id="s-crypto" checked><span class="ttrack"></span></label></div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Email addresses</div><div class="setting-desc">Blur all email addresses found on page</div></div><label class="toggle"><input type="checkbox" id="s-emails" checked><span class="ttrack"></span></label></div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">PII (phone numbers, credit cards)</div><div class="setting-desc">Blur personal identifiable information</div></div><label class="toggle"><input type="checkbox" id="s-pii" checked><span class="ttrack"></span></label></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Behaviour</div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Reveal on hover</div><div class="setting-desc">Hover over a blurred secret to temporarily reveal it</div></div><label class="toggle"><input type="checkbox" id="s-hover"><span class="ttrack"></span></label></div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Show recording banner <a href="#subscription" class="pro-tag" style="text-decoration:none" title="Upgrade to Pro">PRO</a></div><div class="setting-desc">Display protection banner when recording is detected</div></div><label class="toggle" id="t-banner-wrap"><input type="checkbox" id="s-banner" checked><span class="ttrack"></span></label></div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Show toast notifications</div><div class="setting-desc">Show notification when secrets are detected</div></div><label class="toggle"><input type="checkbox" id="s-toasts" checked><span class="ttrack"></span></label></div>
+      </div>
+
+      <!-- Paste Warning -->
+      <div class="card" id="paste-warning-card">
+        <div class="card-title">Paste warning</div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Warn before pasting secrets</div>
+            <div class="setting-desc">Show a warning when pasting an API key, token, or secret into an untrusted page</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="s-paste-warning" checked><span class="ttrack"></span></label>
+        </div>
+        <div class="setting-row" id="paste-trusted-section" style="flex-direction:column;align-items:flex-start;gap:10px;border-bottom:none;padding-top:14px">
+          <div class="setting-info">
+            <div class="setting-name">Paste-trusted domains</div>
+            <div class="setting-desc">No warning is shown when pasting on these domains (e.g. your own tools, localhost, or internal dashboards)</div>
+          </div>
+          <div class="domain-list" id="paste-trusted-list"><div class="empty">No paste-trusted domains yet</div></div>
+          <div class="add-domain-row">
+            <input type="text" id="paste-trusted-input" placeholder="e.g. localhost or vault.example.com">
+            <button class="btn btn-primary" id="add-paste-trusted-btn">Add domain</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Blur intensity</div>
+        <div style="display:flex;align-items:center;gap:16px;padding-top:4px">
+          <input type="range" id="s-intensity" min="3" max="14" value="7" style="flex:1;accent-color:#1D9E75">
+          <span id="s-intensity-val" style="font-family:var(--mono);font-size:13px;color:var(--muted);min-width:36px">7px</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="save-settings">Save settings</button>
+    </div>
+
+    <!-- Whitelist -->
+    <div class="page" id="page-whitelist">
+      <div class="page-title">Whitelisted domains</div>
+      <div class="page-sub">BlurShield is completely disabled on these domains</div>
+      <div class="card">
+        <div class="domain-list" id="domain-list"><div class="empty">No whitelisted domains yet</div></div>
+        <div class="add-domain-row">
+          <input type="text" id="domain-input" placeholder="e.g. example.com">
+          <button class="btn btn-primary" id="add-domain-btn">Add domain</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patterns -->
+    <div class="page" id="page-patterns">
+      <div class="page-title">Pattern library</div>
+      <div class="page-sub">55 regex patterns — all detection runs locally, zero data leaves your browser</div>
+      
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Custom patterns</span>
+          <span class="pro-tag" style="margin:0;cursor:default">PRO</span>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Add your own regular expressions to blur internal company formats or proprietary formats.</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input type="text" id="custom-pattern-name" placeholder="Name (e.g. Internal DB URI)" style="width:160px">
+          <input type="text" id="custom-pattern-regex" placeholder="Regex (e.g. internal-\w{12})" style="flex:1;font-family:var(--mono)">
+          <button class="btn btn-primary" id="add-custom-pattern-btn">Add pattern</button>
+        </div>
+        <div id="custom-patterns-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <div class="pattern-grid" id="pattern-grid"></div>
+    </div>
+
+    <!-- About -->
+    <div class="page" id="page-about">
+      <div class="page-title">About BlurShield</div>
+      <div class="page-sub">Built for developers, by developers</div>
+      <div class="card">
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Version</div></div><span style="font-family:var(--mono);font-size:13px;color:var(--muted)">3.0.0</span></div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Patterns</div></div><span style="font-family:var(--mono);font-size:13px;color:var(--muted)">55</span></div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Data policy</div></div><span style="font-size:12px;color:var(--muted)">Zero. Everything runs locally.</span></div>
+        <div class="setting-row"><div class="setting-info"><div class="setting-name">Pattern library</div></div><a href="#patterns" style="font-size:12px;color:#1D9E75;text-decoration:none">Open →</a></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Keyboard shortcuts</div>
+        <div class="setting-row"><div class="setting-name">Toggle protection</div><span id="shortcut-toggle" style="font-family:var(--mono);font-size:12px;color:var(--muted)">Ctrl+Shift+Y</span></div>
+        <div class="setting-row"><div class="setting-name">Reveal all secrets</div><span id="shortcut-reveal" style="font-family:var(--mono);font-size:12px;color:var(--muted)">Ctrl+Shift+U</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px">If you want different keys, change them in <span style="font-family:var(--mono)">chrome://extensions/shortcuts</span>.</div>
+      </div>
+    </div>
+
+    <!-- Subscription -->
+    <div class="page" id="page-subscription">
+      <div class="page-title">Subscription</div>
+      <div class="page-sub">Manage your BlurShield Pro license</div>
+
+      <div class="card" id="sub-status-card">
+        <div class="setting-row">
+          <div class="setting-info"><div class="setting-name">Status</div></div>
+          <span id="sub-status-text" style="font-size:13px;font-weight:500;color:#1D9E75">Checking…</span>
+        </div>
+        <div class="setting-row" id="trial-row" style="display:none">
+          <div class="setting-info"><div class="setting-name">Trial days remaining</div></div>
+          <span id="trial-days-text" style="font-family:var(--mono);font-size:13px;color:var(--muted)">—</span>
+        </div>
+        <div class="setting-row" id="account-row" style="display:none">
+          <div class="setting-info">
+            <div class="setting-name">Account</div>
+            <div class="setting-desc" id="account-email" style="font-family:var(--mono);font-size:11px">—</div>
+          </div>
+          <button id="auth-action-btn" class="btn btn-ghost" style="padding:6px 12px;font-size:12px">Sign out</button>
+        </div>
+        <div class="setting-row" id="license-key-row" style="display:none">
+          <div class="setting-info"><div class="setting-name">License key</div></div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span id="license-key-display" style="font-family:var(--mono);font-size:11px;color:var(--muted)">—</span>
+            <button id="remove-license-btn" style="background:rgba(239, 68, 68, 0.1);border:1px solid rgba(239, 68, 68, 0.2);color:#ef4444;font-size:10px;text-transform:uppercase;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all 0.15s">Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="activate-card">
+        <div class="card-title">Activate Pro license</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+          After purchasing, you will receive a license key by email. Paste it below to activate Pro on this browser.
+        </p>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" id="opt-license-input" placeholder="Paste license key here…"
+            style="flex:1;background:var(--bg4);border:0.5px solid var(--border2);border-radius:6px;
+                   color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 12px;outline:none">
+          <button class="btn btn-primary" id="opt-activate-btn" style="white-space:nowrap">Activate</button>
+        </div>
+        <div id="opt-license-msg" style="font-size:12px;min-height:16px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Plans</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div id="plan-monthly" class="plan-card" style="border:0.5px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all 0.15s">
+            <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">Monthly</div>
+            <div style="font-size:22px;font-weight:500;color:var(--text);margin-bottom:2px">$5<span style="font-size:12px;font-weight:400;color:var(--muted)">/mo</span></div>
+            <div style="font-size:11px;color:var(--muted)">Cancel anytime</div>
+          </div>
+          <div id="plan-annual" class="plan-card active" style="border:1.5px solid #1D9E75;border-radius:8px;padding:12px;position:relative;cursor:pointer;transition:all 0.15s">
+            <div style="position:absolute;top:-9px;left:12px;font-size:9px;font-weight:700;background:#1D9E75;color:#fff;padding:1px 8px;border-radius:8px">Best value</div>
+            <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">Annual</div>
+            <div style="font-size:22px;font-weight:500;color:#1D9E75;margin-bottom:2px">$39<span style="font-size:12px;font-weight:400;color:var(--muted)">/yr</span></div>
+            <div style="font-size:11px;color:#1D9E75">Save 35%</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="opt-buy-btn">Get Pro — Open checkout →</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Pro features you unlock</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div style="font-size:12px;color:var(--muted);padding:5px 0;border-bottom:0.5px solid var(--border)">✓ All 55 detection patterns</div>
+          <div style="font-size:12px;color:var(--muted);padding:5px 0;border-bottom:0.5px solid var(--border)">✓ Anthropic, Discord, Cloudflare +20 more</div>
+          <div style="font-size:12px;color:var(--muted);padding:5px 0;border-bottom:0.5px solid var(--border)">✓ Unlimited custom zones</div>
+          <div style="font-size:12px;color:var(--muted);padding:5px 0;border-bottom:0.5px solid var(--border)">✓ Security score + severity badges</div>
+          <div style="font-size:12px;color:var(--muted);padding:5px 0;border-bottom:0.5px solid var(--border)">✓ Recording detection banner</div>
+          <div style="font-size:12px;color:var(--muted);padding:5px 0;border-bottom:0.5px solid var(--border)">✓ Full stats dashboard</div>
+          <div style="font-size:12px;color:var(--muted);padding:5px 0">✓ All future pattern updates</div>
+          <div style="font-size:12px;color:var(--muted);padding:5px 0">✓ Priority support</div>
+        </div>
+      </div>
+
+      <!-- Keyboard Shortcuts -->
+      <div class="card" id="shortcuts-card">
+        <div class="card-title">⌨️ Keyboard Shortcuts</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+          Click a shortcut and press your desired key combo to reassign it. Changes apply instantly to all open tabs.
+        </div>
+        <div class="shortcut-recorder-row">
+          <div class="setting-info"><div class="setting-name">Toggle BlurShield on/off</div></div>
+          <div class="sck-wrap">
+            <div class="sck-input" id="sck-toggle" tabindex="0">Alt+Shift+B</div>
+            <button class="sck-reset" data-action="toggle">↺</button>
+          </div>
+        </div>
+        <div class="shortcut-recorder-row">
+          <div class="setting-info"><div class="setting-name">Reveal all secrets</div></div>
+          <div class="sck-wrap">
+            <div class="sck-input" id="sck-reveal" tabindex="0">Alt+Shift+U</div>
+            <button class="sck-reset" data-action="reveal">↺</button>
+          </div>
+        </div>
+        <div class="shortcut-recorder-row">
+          <div class="setting-info"><div class="setting-name">Toggle Meeting Mode</div></div>
+          <div class="sck-wrap">
+            <div class="sck-input" id="sck-meeting" tabindex="0">Alt+Shift+M</div>
+            <button class="sck-reset" data-action="meeting">↺</button>
+          </div>
+        </div>
+        <div class="shortcut-recorder-row">
+          <div class="setting-info"><div class="setting-name">Preview Risk (highlight secrets)</div></div>
+          <div class="sck-wrap">
+            <div class="sck-input" id="sck-preview" tabindex="0">Alt+Shift+K</div>
+            <button class="sck-reset" data-action="preview">↺</button>
+          </div>
+        </div>
+        <div id="sck-status" style="font-size:11px;color:var(--green);min-height:16px;margin-top:10px"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="app-config.js"></script>
+<script src="firebase.js"></script>
+<script src="patterns.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

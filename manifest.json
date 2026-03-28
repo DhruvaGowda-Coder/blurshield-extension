@@ -1,0 +1,123 @@
+{
+  "manifest_version": 3,
+  "name": "BlurShield — Developer Screen Privacy",
+  "short_name": "BlurShield",
+  "version": "3.0.2",
+  "description": "Automatically detects and blurs sensitive credentials on screen before you share. All scanning is 100% local.",
+  "homepage_url": "https://dhruvagowda-coder.github.io/BlurShield-Website/privacy.html",
+  "permissions": [
+    "scripting",
+    "identity",
+    "activeTab",
+    "storage",
+    "tabs",
+    "notifications",
+    "alarms",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://identitytoolkit.googleapis.com/",
+    "<all_urls>",
+    "https://firestore.googleapis.com/",
+    "https://*.googleapis.com/",
+    "https://*.firebaseio.com/"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "intercept.js"
+      ],
+      "all_frames": false,
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "patterns.js",
+        "content.js",
+        "leakPreview.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "toggle-blur": {
+      "suggested_key": {
+        "default": "Alt+Shift+B",
+        "mac": "Command+Shift+B"
+      },
+      "description": "Toggle BlurShield on/off"
+    },
+    "reveal-all": {
+      "suggested_key": {
+        "default": "Alt+Shift+U",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Temporarily reveal all secrets"
+    },
+    "meeting-mode": {
+      "suggested_key": {
+        "default": "Alt+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "Toggle Meeting Mode — blur everything instantly"
+    },
+    "leak-preview": {
+      "suggested_key": {
+        "default": "Alt+Shift+K",
+        "mac": "Command+Shift+K"
+      },
+      "description": "Preview Risk — highlight all detected secrets without blurring"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*.png",
+        "icons/*.svg"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "oauth2": {
+    "client_id": "111427676536-si4ihq3pnlbtv322l0ogfae3c7k6tfgc.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  }
+}

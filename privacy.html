@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BlurShield Privacy Policy - We never upload your screen data. Everything happens locally in your browser.">
+  <title>Privacy Policy — BlurShield</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #03060d;
+      --card: #111118;
+      --card-border: rgba(255,255,255,0.06);
+      --text: #e2e2f0;
+      --muted: #8b8ba6;
+      --green: #1D9E75;
+      --green-soft: rgba(29,158,117,0.12);
+      --green-border: rgba(29,158,117,0.25);
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 64px 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 680px;
+      animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .header-logo {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 64px; height: 64px; border-radius: 16px;
+      background: var(--green-soft); border: 1px solid var(--green-border);
+      margin-bottom: 20px;
+    }
+    .header-title { font-size: 32px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .header-sub { font-size: 16px; color: var(--muted); }
+    
+    .card {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: 20px; padding: 40px; margin-bottom: 24px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    .last-updated { font-size: 13px; color: var(--muted); margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--card-border); }
+    
+    h2 { font-size: 20px; font-weight: 600; color: #fff; margin: 32px 0 12px; display: flex; align-items: center; gap: 10px; }
+    h2:first-of-type { margin-top: 0; }
+    p { margin-bottom: 16px; color: #a1a1b5; font-size: 15px; }
+    ul { margin: 0 0 20px 20px; color: #a1a1b5; font-size: 15px; }
+    li { margin-bottom: 8px; }
+    strong { color: #e2e2f0; font-weight: 600; }
+    
+    .highlight-box {
+      background: rgba(29, 158, 117, 0.08);
+      border: 1px solid var(--green-border);
+      border-radius: 12px; padding: 20px; margin: 24px 0;
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .highlight-icon { font-size: 24px; line-height: 1; }
+    .highlight-content h3 { font-size: 16px; color: #1D9E75; margin-bottom: 4px; }
+    .highlight-content p { margin: 0; color: #e2e2f0; font-size: 14px; }
+
+    .footer { text-align: center; margin-top: 48px; color: var(--muted); font-size: 13px; }
+    .footer a { color: var(--green); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    
+    .back-nav { margin-bottom: 32px; }
+    .btn-back { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.15s; }
+    .btn-back:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-logo"><img src="icons/icon128.png" width="32" height="32" alt="BlurShield"></div>
+      <div class="header-title">Privacy Policy</div>
+      <div class="header-sub">Your privacy isn't just a feature, it's our foundation.</div>
+    </div>
+
+    <div class="card">
+      <div class="last-updated">Last Updated: March 2026</div>
+
+      <div class="highlight-box">
+        <div class="highlight-icon">🛡️</div>
+        <div class="highlight-content">
+          <h3>The TL;DR</h3>
+          <p>BlurShield scans everything <strong>locally on your device</strong>. We absolutely never upload, send, store, or transmit your screen contents, API keys, passwords, or browsing data to any server. Ever.</p>
+        </div>
+      </div>
+
+      <h2>1. Local Processing Guarantee</h2>
+      <p>BlurShield operates entirely within your browser. The core functionality—scanning your screen, identifying sensitive patterns, and applying visual blur effects—all happens on your local machine using regular expressions and DOM manipulation.</p>
+      <ul>
+        <li><strong>No external APIs:</strong> We do not send textual content to any external server for analysis.</li>
+        <li><strong>No telemetry:</strong> We do not track the URLs you visit or the content you view.</li>
+        <li><strong>No remote execution:</strong> The scanning engine does not rely on cloud infrastructure.</li>
+      </ul>
+
+      <h2>2. Data We Collect</h2>
+      <p>To provide licensing and operational functionality, we collect the bare minimum information required:</p>
+      <ul>
+        <li><strong>Account Authentication:</strong> When you sign in to verify your Pro license, we use Google Authentication (Firebase). We store your email address solely to associate it with your license key.</li>
+        <li><strong>Settings Configuration:</strong> Your preferences (e.g., custom blur intensity, enabled features, Custom Patterns) are stored strictly inside your browser using Chrome's <code>chrome.storage.sync</code> API, which synchronizes securely with your Google account. We do not have access to this data.</li>
+      </ul>
+
+      <h2>3. Third-Party Services</h2>
+      <p>We use the following trusted third-party services to handle account management and payments:</p>
+      <ul>
+        <li><strong>Google Firebase:</strong> Used securely for sign-in functionality and license verification.</li>
+        <li><strong>Lemon Squeezy:</strong> Used as our merchant of record to process payments securely. BlurShield never sees or stores your credit card details.</li>
+      </ul>
+
+      <h2>4. Permissions We Request</h2>
+      <p>BlurShield requests certain Chrome Extension permissions to function fully. Here is why we need them:</p>
+      <ul>
+        <li><code>activeTab</code> &amp; <code>scripting</code>: Necessary to scan the active page for secrets and apply CSS blur filters over them.</li>
+        <li><code>storage</code>: To save your configuration and preferences locally.</li>
+        <li><code>identity</code>: To securely process Google Sign-In for license management without requiring passwords.</li>
+        <li><code>notifications</code>: To alert you when a secret is accidentally copied to your clipboard.</li>
+      </ul>
+
+      <h2>5. Changes to this Policy</h2>
+      <p>We may update our Privacy Policy occasionally to reflect changes in our practices or product. Any modifications will be posted here with an updated "Last Updated" date.</p>
+
+      <h2>6. Contact Us</h2>
+      <p>If you have any questions or concerns about this Privacy Policy or our practices, please reach out to us at <a href="mailto:blurshield2006@gmail.com" style="color:var(--green)">blurshield2006@gmail.com</a>.</p>
+    </div>
+
+    <div class="footer">
+      <a href="features.html">Features</a> · 
+      <a href="contact.html">Contact Us</a>
+    </div>
+  </div>
+</body>
+</html>

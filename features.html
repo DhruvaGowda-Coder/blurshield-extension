@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self';">
+  <title>Features — BlurShield</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #06060c;
+      --bg2: #0d0d16;
+      --card: #111119;
+      --card-border: rgba(255,255,255,0.06);
+      --text: #e4e4f0;
+      --muted: #8b8ba6;
+      --green: #1D9E75;
+      --green-soft: rgba(29,158,117,0.10);
+      --green-border: rgba(29,158,117,0.25);
+      --green-glow: rgba(29,158,117,0.15);
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --mono: 'JetBrains Mono', 'Cascadia Mono', 'Consolas', monospace;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── Floating Orbs Background ─────── */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.08;
+      animation: orbFloat 20s ease-in-out infinite;
+    }
+    .bg-orb:nth-child(1) {
+      width: 500px; height: 500px;
+      background: var(--green);
+      top: -100px; left: -100px;
+      animation-duration: 25s;
+    }
+    .bg-orb:nth-child(2) {
+      width: 400px; height: 400px;
+      background: var(--purple);
+      top: 40%; right: -120px;
+      animation-duration: 22s;
+      animation-delay: -5s;
+    }
+    .bg-orb:nth-child(3) {
+      width: 350px; height: 350px;
+      background: var(--blue);
+      bottom: 10%; left: 20%;
+      animation-duration: 28s;
+      animation-delay: -10s;
+    }
+    .bg-orb:nth-child(4) {
+      width: 300px; height: 300px;
+      background: var(--green);
+      top: 60%; right: 30%;
+      animation-duration: 30s;
+      animation-delay: -15s;
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(40px, -30px) scale(1.1); }
+      50% { transform: translate(-20px, 50px) scale(0.9); }
+      75% { transform: translate(30px, 20px) scale(1.05); }
+    }
+
+    /* ── Floating Particles ──────────── */
+    .particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .particle {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: var(--green);
+      border-radius: 50%;
+      opacity: 0;
+      animation: particleRise linear infinite;
+    }
+    @keyframes particleRise {
+      0%   { opacity: 0; transform: translateY(0) scale(0); }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.2; }
+      100% { opacity: 0; transform: translateY(-100vh) scale(1); }
+    }
+
+    /* ── Content Wrapper ─────────────── */
+    .content { position: relative; z-index: 1; }
+
+    /* ── Top Nav ──────────────────────── */
+    .topnav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 24px 0;
+    }
+    .topnav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .topnav-brand img { border-radius: 8px; }
+    .topnav-links { display: flex; gap: 4px; }
+    .topnav-links a {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: all 0.15s;
+    }
+    .topnav-links a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* ── Hero ─────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 72px 24px 40px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green);
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      animation: badgePulse 3s ease-in-out infinite;
+    }
+    @keyframes badgePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(29,158,117,0.2); }
+      50% { box-shadow: 0 0 20px 4px rgba(29,158,117,0.12); }
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: dotBlink 2s ease-in-out infinite;
+    }
+    @keyframes dotBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .hero h1 {
+      font-size: 40px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, var(--green) 0%, #14b8a6 50%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ── Stats Bar ────────────────────── */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      padding: 32px 24px 56px;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      font-family: var(--mono);
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── Live Demo Section ────────────── */
+    .demo-section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 64px;
+    }
+    .demo-wrapper {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(29,158,117,0.05);
+    }
+    .demo-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--card-border);
+    }
+    .demo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .demo-dot.r { background: #ef4444; }
+    .demo-dot.y { background: #eab308; }
+    .demo-dot.g { background: #22c55e; }
+    .demo-url {
+      flex: 1;
+      margin-left: 8px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      padding: 5px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .demo-url .lock { color: var(--green); font-size: 10px; }
+    .demo-body {
+      padding: 24px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 2;
+      position: relative;
+    }
+    .demo-line {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      white-space: nowrap;
+    }
+    .demo-key {
+      color: #7dd3fc;
+      min-width: 220px;
+      text-align: right;
+      padding-right: 8px;
+    }
+    .demo-eq { color: var(--muted); padding: 0 8px; }
+    .demo-val { color: #86efac; }
+    .demo-val-safe { color: var(--muted); }
+    .demo-blurred {
+      display: inline-block;
+      filter: blur(6px);
+      user-select: none;
+      transition: filter 0.4s ease;
+      cursor: pointer;
+      padding: 0 4px;
+      border-radius: 4px;
+      position: relative;
+    }
+    .demo-blurred:hover {
+      filter: blur(0px);
+    }
+    .demo-blurred::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 4px;
+      border: 1.5px solid rgba(239,68,68,0.25);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .demo-blurred:hover::after {
+      opacity: 1;
+    }
+    .demo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 16px;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      color: var(--green);
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      border-radius: 8px;
+      padding: 6px 14px;
+    }
+    .demo-badge .shield { font-size: 14px; }
+    .demo-hint {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 12px;
+      border-top: 1px solid var(--card-border);
+      font-family: 'Inter', sans-serif;
+      animation: hintPulse 2s ease-in-out infinite;
+    }
+    @keyframes hintPulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* Demo toast notification */
+    .demo-toast {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #111118, #0d0d14);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      animation: toastIn 0.5s cubic-bezier(0.16,1,0.3,1) 1s both;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: 260px;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.95); }
+      to { opacity: 1; transform: none; }
+    }
+    .demo-toast-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .demo-toast-title { font-size: 12px; font-weight: 600; color: #fff; }
+    .demo-toast-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .demo-toast-pills { display: flex; gap: 4px; margin-top: 5px; }
+    .demo-toast-pill {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .pill-crit { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+    .pill-high { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.2); }
+
+    /* ── Section ──────────────────────── */
+    .section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 64px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .section-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    /* ── Feature Grid ─────────────────── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px 22px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green-border), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover {
+      border-color: var(--green-border);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35), 0 0 20px var(--green-glow);
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-card.span-2 { grid-column: span 2; }
+    .fc-icon {
+      width: 42px; height: 42px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+    .fc-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fc-pro {
+      font-size: 9px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--green), #14b8a6);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .fc-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── Pattern Table ────────────────── */
+    .pattern-wrap {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .pattern-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .pattern-table th {
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(255,255,255,0.02);
+    }
+    .pattern-table td {
+      padding: 11px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.025);
+      color: var(--text);
+    }
+    .pattern-table tr { transition: background 0.15s; }
+    .pattern-table tbody tr:hover td { background: rgba(29,158,117,0.04); }
+    .sev-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 4px;
+    }
+    .sev-critical { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+    .sev-high { background: rgba(245,158,11,0.12); color: #fcd34d; border: 1px solid rgba(245,158,11,0.2); }
+    .sev-medium { background: rgba(59,130,246,0.12); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+
+    /* ── How it Works ─────────────────── */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px 20px;
+      text-align: center;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+    .step-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--green-border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .step-num {
+      font-size: 36px;
+      font-weight: 800;
+      font-family: var(--mono);
+      color: var(--green);
+      opacity: 0.3;
+      position: absolute;
+      top: 12px;
+      right: 18px;
+    }
+    .step-icon { font-size: 32px; margin-bottom: 14px; }
+    .step-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Shortcuts ─────────────────────── */
+    .shortcut-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .shortcut-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 13px 18px;
+      transition: all 0.2s;
+    }
+    .shortcut-row:hover {
+      border-color: var(--green-border);
+      background: rgba(29,158,117,0.04);
+    }
+    .shortcut-label { font-size: 12px; color: var(--text); }
+    .shortcut-keys {
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--mono);
+      color: var(--green);
+      background: var(--green-soft);
+      border: 1px solid var(--green-border);
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+
+    /* ── Pricing ──────────────────────── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .price-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 28px 22px;
+      text-align: center;
+      position: relative;
+      transition: all 0.25s;
+    }
+    .price-card:hover { transform: translateY(-3px); }
+    .price-card.featured {
+      border-color: var(--green-border);
+      box-shadow: 0 0 40px rgba(29,158,117,0.08);
+    }
+    .badge-best {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--green);
+      color: #fff;
+      padding: 3px 14px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .price-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .price-amount {
+      font-size: 36px;
+      font-weight: 800;
+      color: #fff;
+      margin: 12px 0 4px;
+      font-family: var(--mono);
+    }
+    .price-amount span { font-size: 14px; color: var(--muted); font-weight: 400; }
+    .price-sub { font-size: 12px; color: var(--muted); }
+    .price-features {
+      margin-top: 16px;
+      text-align: left;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 2;
+    }
+    .price-features span { color: var(--green); margin-right: 6px; }
+
+    /* ── Privacy ──────────────────────── */
+    .privacy-banner {
+      background: var(--card);
+      border: 1px solid var(--green-border);
+      border-radius: 16px;
+      padding: 36px 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .privacy-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(29,158,117,0.06), transparent 70%);
+      pointer-events: none;
+    }
+    .privacy-banner h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .privacy-banner p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 520px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+    .privacy-checks {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .privacy-check {
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    /* ── Footer ───────────────────────── */
+    .page-footer {
+      text-align: center;
+      padding: 44px 24px;
+      border-top: 1px solid var(--card-border);
+      margin-top: 20px;
+    }
+    .page-footer p {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    .page-footer a {
+      color: var(--green);
+      text-decoration: none;
+    }
+    .page-footer a:hover { text-decoration: underline; }
+
+    /* ── Scroll Animations ────────────── */
+    .content { perspective: 1400px; }
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+    .reveal.hidden {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95) rotateX(-8deg);
+      transition: none;
+    }
+    .reveal.visible {
+      animation: popupRotation 0.9s cubic-bezier(0.25, 1.2, 0.4, 1.0) forwards;
+    }
+    @keyframes popupRotation {
+      0% { opacity: 0; transform: translateY(40px) scale(0.92) rotateX(-12deg); }
+      70% { opacity: 1; transform: translateY(-4px) scale(1.02) rotateX(3deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); }
+    }
+    .reveal-delay-1 { animation-delay: 0.1s; }
+    .reveal-delay-2 { animation-delay: 0.2s; }
+    .reveal-delay-3 { animation-delay: 0.3s; }
+
+    /* ── Responsive ───────────────────── */
+    @media (max-width: 640px) {
+      .feature-grid, .shortcut-grid, .pricing-grid { grid-template-columns: 1fr; }
+      .feature-card.span-2 { grid-column: span 1; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 28px; }
+      .stats-bar { gap: 24px; flex-wrap: wrap; }
+      .stat-num { font-size: 24px; }
+      .demo-body { font-size: 11px; padding: 16px; }
+      .demo-key { min-width: 150px; }
+      .demo-toast { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Orbs -->
+  <div class="bg-orbs">
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+  </div>
+
+  <!-- Floating Particles -->
+  <div class="particles" id="particles"></div>
+
+  <div class="content">
+
+    <!-- Top Nav -->
+    <nav class="topnav">
+      <a href="options.html" class="topnav-brand">
+        <img src="icons/icon128.png" width="28" height="28" alt="BlurShield">
+        BlurShield
+      </a>
+      <div class="topnav-links">
+        <a href="contact.html">Contact</a>
+        <a href="privacy.html" target="_blank">Privacy</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero reveal">
+      <div class="hero-badge"><span class="dot"></span> Chrome Extension v3.0</div>
+      <h1>Your Screen. <span class="gradient">Your Secrets.</span><br>Always Protected.</h1>
+      <p>BlurShield auto-detects API keys, tokens, passwords, and PII on any webpage — and blurs them instantly before you share your screen.</p>
+    </section>
+
+    <!-- Stats -->
+    <div class="stats-bar reveal">
+      <div class="stat-item">
+        <div class="stat-num">55</div>
+        <div class="stat-label">Detection patterns</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">30+</div>
+        <div class="stat-label">Services covered</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Data sent externally</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Local processing</div>
+      </div>
+    </div>
+
+    <!-- Live Demo -->
+    <section class="demo-section reveal">
+      <div class="demo-wrapper">
+        <div class="demo-titlebar">
+          <div class="demo-dot r"></div>
+          <div class="demo-dot y"></div>
+          <div class="demo-dot g"></div>
+          <div class="demo-url"><span class="lock">🔒</span> dashboard.example.com/settings/api</div>
+        </div>
+        <div class="demo-body">
+          <div class="demo-line">
+            <span class="demo-key">OPENAI_API_KEY</span>
+            <span class="demo-eq">=</span>
+            <span class="demo-blurred" style="color:#fca5a5">sk-proj-8xKqM3nPvR2wT5yB7uA9</span>
+          </div>
+          <div class="demo-line">
+            <span class="demo-key">AWS_ACCESS_KEY_ID</span>
+            <span class="demo-eq">=</span>
+            <span class="demo-blurred" style="color:#fca5a5">AKIAIOSFODNN7EXAMPLE</span>
+          </div>
+          <div class="demo-line">
+            <span class="demo-key">STRIPE_SECRET_KEY</span>
+            <span class="demo-eq">=</span>
+            <span class="demo-blurred" style="color:#fcd34d">sk_live_51NxG2cKj8mP4qRtVwXy</span>
+          </div>
+          <div class="demo-line">
+            <span class="demo-key">GITHUB_TOKEN</span>
+            <span class="demo-eq">=</span>
+            <span class="demo-blurred" style="color:#fca5a5">ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ</span>
+          </div>
+          <div class="demo-line">
+            <span class="demo-key">DATABASE_URL</span>
+            <span class="demo-eq">=</span>
+            <span class="demo-blurred" style="color:#93c5fd">postgresql://admin:s3cret@prod.db</span>
+          </div>
+          <div class="demo-line">
+            <span class="demo-key">NODE_ENV</span>
+            <span class="demo-eq">=</span>
+            <span class="demo-val-safe">production</span>
+          </div>
+
+          <div class="demo-badge"><span class="shield">🛡️</span> 5 secrets auto-detected and blurred</div>
+
+          <!-- Floating toast -->
+          <div class="demo-toast">
+            <div class="demo-toast-icon">🛡️</div>
+            <div>
+              <div class="demo-toast-title">BlurShield</div>
+              <div class="demo-toast-sub">5 secrets auto-detected and blurred</div>
+              <div class="demo-toast-pills">
+                <span class="demo-toast-pill pill-crit">Critical: 3</span>
+                <span class="demo-toast-pill pill-high">High: 2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-hint">👆 Hover over blurred values to reveal them — just like in the real extension!</div>
+      </div>
+    </section>
+
+    <!-- How it Works -->
+    <section class="section reveal">
+      <div class="section-label">How It Works</div>
+      <div class="section-title">Protection in 3 Simple Steps</div>
+      <div class="section-sub">Install, open any page, and BlurShield takes care of the rest.</div>
+
+      <div class="steps-grid">
+        <div class="step-card reveal reveal-delay-1">
+          <div class="step-num">01</div>
+          <div class="step-icon">📥</div>
+          <div class="step-title">Install & Sign In</div>
+          <div class="step-desc">Add BlurShield from the Chrome Web Store. Sign in with Google to start your free 7-day trial — no card needed.</div>
+        </div>
+        <div class="step-card reveal reveal-delay-2">
+          <div class="step-num">02</div>
+          <div class="step-icon">🔍</div>
+          <div class="step-title">Auto-Scan Every Page</div>
+          <div class="step-desc">BlurShield quietly scans every webpage you visit using 55 regex patterns. Detected secrets are blurred in real-time.</div>
+        </div>
+        <div class="step-card reveal reveal-delay-3">
+          <div class="step-num">03</div>
+          <div class="step-icon">🎥</div>
+          <div class="step-title">Share Screen Safely</div>
+          <div class="step-desc">Before meetings, BlurShield scans all tabs and alerts you. Click to fix issues, then share your screen with confidence.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Features -->
+    <section class="section reveal">
+      <div class="section-label">Core Features</div>
+      <div class="section-title">Everything You Need to Stay Safe</div>
+      <div class="section-sub">From auto-detection to meeting protection — BlurShield covers every angle.</div>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2)">🔍</div>
+          <div class="fc-title">Auto-Detection Engine</div>
+          <div class="fc-desc">55 regex patterns detect API keys, tokens, passwords, and PII from AWS, GitHub, Stripe, OpenAI, Google Cloud, and 25+ more services in real-time.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)">🔒</div>
+          <div class="fc-title">Instant Blur Protection</div>
+          <div class="fc-desc">Secrets are automatically blurred with a customizable Gaussian blur. Double-click or hover to temporarily reveal individual items.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2)">🎥</div>
+          <div class="fc-title">Pre-Meeting Scan</div>
+          <div class="fc-desc">Automatically scans all open tabs before a Zoom, Google Meet, or Microsoft Teams call starts. Shows exactly which tabs have exposed secrets.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2)">🖱️</div>
+          <div class="fc-title">Custom Blur Zones</div>
+          <div class="fc-desc">Click any element on any page to manually blur it. Perfect for dashboards, balances, personal info, or anything the auto-scanner can't catch.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2)">📋</div>
+          <div class="fc-title">Clipboard Guard</div>
+          <div class="fc-desc">Warns you when you copy sensitive data and again when you paste it — with options to Allow, Redact, or Cancel.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2)">🔴</div>
+          <div class="fc-title">Leak Preview Mode</div>
+          <div class="fc-desc">Highlights all detected secrets with red outlines instead of blurring — perfect for auditing a page before a meeting.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2)">🎬</div>
+          <div class="fc-title">Meeting Mode</div>
+          <div class="fc-desc">One shortcut to blur ALL text content on the entire page instantly. Perfect for when someone unexpectedly asks to see your screen.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2)">📸</div>
+          <div class="fc-title">Blurred Screenshots</div>
+          <div class="fc-desc">Capture a screenshot of the current tab with all blurs intact. Download as PNG — safe to share with your team.</div>
+        </div>
+        <div class="feature-card span-2">
+          <div class="fc-icon" style="background:var(--green-soft);border:1px solid var(--green-border)">🛡️</div>
+          <div class="fc-title">Screen-Share Intercept <span class="fc-pro">PRO</span></div>
+          <div class="fc-desc">Intercepts your browser's screen-share API (getDisplayMedia) to automatically run a full security scan before any recording begins. Works with Zoom, Meet, Teams, Loom, OBS, and more.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)">📊</div>
+          <div class="fc-title">Security Score <span class="fc-pro">PRO</span></div>
+          <div class="fc-desc">Real-time security score based on the severity and count of detected secrets on the current page. See Critical, High, and Medium severity badges.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2)">📈</div>
+          <div class="fc-title">Stats Dashboard <span class="fc-pro">PRO</span></div>
+          <div class="fc-desc">7-day activity chart showing secrets blurred, times revealed, active days, and custom zones saved. Track your protection over time.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2)">🌐</div>
+          <div class="fc-title">Domain Whitelisting</div>
+          <div class="fc-desc">Whitelist trusted domains where you don't need protection — like internal tools, dev environments, or known-safe sites.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)">🔤</div>
+          <div class="fc-title">Custom Patterns <span class="fc-pro">PRO</span></div>
+          <div class="fc-desc">Add your own regex patterns to detect company-specific secrets, internal project IDs, or any custom sensitive data format.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2)">🔔</div>
+          <div class="fc-title">Recording Banner <span class="fc-pro">PRO</span></div>
+          <div class="fc-desc">When screen recording is detected, a banner appears confirming BlurShield is active and how many secrets are protected.</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.2)">⌨️</div>
+          <div class="fc-title">Custom Keyboard Shortcuts</div>
+          <div class="fc-desc">Reassign every shortcut to your preferred key combo. Changes apply instantly to all open tabs.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Detection Library -->
+    <section class="section reveal">
+      <div class="section-label">Detection Library</div>
+      <div class="section-title">55 Patterns Across 30+ Services</div>
+      <div class="section-sub">From cloud providers to crypto wallets — we catch what matters most.</div>
+
+      <div class="pattern-wrap">
+        <table class="pattern-table">
+          <thead><tr><th>Service</th><th>What We Detect</th><th>Severity</th></tr></thead>
+          <tbody>
+            <tr><td>AWS</td><td>Access Key IDs & Secret Keys</td><td><span class="sev-badge sev-critical">Critical</span></td></tr>
+            <tr><td>GitHub</td><td>Personal Access Tokens (ghp_, gho_, ghs_)</td><td><span class="sev-badge sev-critical">Critical</span></td></tr>
+            <tr><td>OpenAI</td><td>API Keys (sk-...)</td><td><span class="sev-badge sev-critical">Critical</span></td></tr>
+            <tr><td>Stripe</td><td>Secret & Publishable Keys</td><td><span class="sev-badge sev-critical">Critical</span></td></tr>
+            <tr><td>Google Cloud</td><td>API Keys (AIza...)</td><td><span class="sev-badge sev-critical">Critical</span></td></tr>
+            <tr><td>Slack</td><td>Bot Tokens & Webhooks</td><td><span class="sev-badge sev-high">High</span></td></tr>
+            <tr><td>Discord</td><td>Bot Tokens</td><td><span class="sev-badge sev-high">High</span></td></tr>
+            <tr><td>Firebase</td><td>API Keys & Service Accounts</td><td><span class="sev-badge sev-high">High</span></td></tr>
+            <tr><td>SSH / RSA</td><td>Private Keys</td><td><span class="sev-badge sev-critical">Critical</span></td></tr>
+            <tr><td>JWT</td><td>JSON Web Tokens</td><td><span class="sev-badge sev-high">High</span></td></tr>
+            <tr><td>Crypto</td><td>Bitcoin & Ethereum Addresses</td><td><span class="sev-badge sev-medium">Medium</span></td></tr>
+            <tr><td>PII</td><td>SSN, Credit Cards, Phone Numbers, Emails</td><td><span class="sev-badge sev-high">High</span></td></tr>
+            <tr><td colspan="3" style="text-align:center;color:var(--muted);font-size:11px;padding:16px">+ Anthropic, Twilio, SendGrid, Cloudflare, Shopify, Azure, Heroku, DigitalOcean, NPM, PyPI, and more</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Keyboard Shortcuts -->
+    <section class="section reveal">
+      <div class="section-label">Productivity</div>
+      <div class="section-title">Keyboard Shortcuts</div>
+      <div class="section-sub">Control everything without touching your mouse. All shortcuts are fully customizable.</div>
+
+      <div class="shortcut-grid">
+        <div class="shortcut-row"><span class="shortcut-label">Toggle BlurShield</span><span class="shortcut-keys">Alt+Shift+B</span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Reveal All Secrets</span><span class="shortcut-keys">Alt+Shift+U</span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Meeting Mode</span><span class="shortcut-keys">Alt+Shift+M</span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Preview Risk</span><span class="shortcut-keys">Alt+Shift+K</span></div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="section reveal">
+      <div class="section-label">Pricing</div>
+      <div class="section-title">Simple, Transparent Pricing</div>
+      <div class="section-sub">Start with a free 7-day trial. No credit card required.</div>
+
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="price-name">Monthly</div>
+          <div class="price-amount">$5<span>/mo</span></div>
+          <div class="price-sub">Cancel anytime</div>
+          <div class="price-features">
+            <span>✓</span> All 55 detection patterns<br>
+            <span>✓</span> Unlimited custom zones<br>
+            <span>✓</span> Full stats dashboard<br>
+            <span>✓</span> Priority support
+          </div>
+        </div>
+        <div class="price-card featured">
+          <div class="badge-best">Save 35%</div>
+          <div class="price-name" style="color:var(--green)">Annual</div>
+          <div class="price-amount">$39<span>/yr</span></div>
+          <div class="price-sub" style="color:var(--green)">Best value</div>
+          <div class="price-features">
+            <span>✓</span> Everything in Monthly<br>
+            <span>✓</span> All future pattern updates<br>
+            <span>✓</span> Recording detection banner<br>
+            <span>✓</span> Custom regex patterns
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy -->
+    <section class="section reveal">
+      <div class="privacy-banner">
+        <h3>🔐 Your Privacy is Non-Negotiable</h3>
+        <p>BlurShield processes everything locally inside your browser. No screenshots, no page content, and absolutely no detected secrets ever leave your machine.</p>
+        <div class="privacy-checks">
+          <span class="privacy-check">✓ Zero data collection</span>
+          <span class="privacy-check">✓ No external servers</span>
+          <span class="privacy-check">✓ 100% local processing</span>
+          <span class="privacy-check">✓ Open privacy policy</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+      <p>
+        BlurShield v3.0 · Made with 🛡️ for developers who care about privacy<br>
+        <a href="contact.html">Contact</a> · <a href="privacy.html" target="_blank">Privacy Policy</a> · <a href="features.html">Features</a>
+      </p>
+      <p style="margin-top:8px">© 2026 BlurShield. All rights reserved.</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // ── Generate floating particles ──
+    (function() {
+      const container = document.getElementById('particles');
+      if (!container) return;
+      for (let i = 0; i < 30; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (8 + Math.random() * 16) + 's';
+        p.style.animationDelay = (Math.random() * 20) + 's';
+        p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+        container.appendChild(p);
+      }
+    })();
+
+    // ── Scroll reveal animation ──
+    (function() {
+      const els = document.querySelectorAll('.reveal');
+      // First hide elements, then reveal on scroll
+      els.forEach(el => el.classList.add('hidden'));
+      // Small delay to ensure hidden class is applied before observing
+      requestAnimationFrame(() => {
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.classList.remove('hidden');
+              e.target.classList.add('visible');
+            }
+          });
+        }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+        els.forEach(el => obs.observe(el));
+      });
+    })();
+  </script>
+
+</body>
+</html>
