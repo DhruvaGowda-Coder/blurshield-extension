@@ -16,6 +16,7 @@
 ## 🌐 Live Demo
 
 👉 Chrome Web Store: https://chromewebstore.google.com/detail/dgpihknippnloandcngnipbponnnlhmd
+
 👉 Edge Add-ons: https://microsoftedge.microsoft.com/addons/detail/hpkdndhpbjionebkkpmpjmdampomnonh
 
 ---
