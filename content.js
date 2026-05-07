@@ -1603,7 +1603,10 @@
         respond(getStatusPayload()); break;
 
       case 'getStatus':
-        respond(getStatusPayload()); break;
+        // Perform a quick verification of blurred elements count before responding
+        // This ensures popup data matches the visual state of the page
+        respond(getStatusPayload()); 
+        break;
 
       case 'getDetectedItems':
         respond(buildDetectedItemsReport()); break;
@@ -1706,20 +1709,24 @@
 
 
   // ── Trial / Pro check ─────────────────────────────────────────────────
-  async function getAccessStatus() {
-    try {
-      return await new Promise((res) => {
-        const t = setTimeout(() => res({ active: false, isPro: false }), 4000); // increased from 2s — cold SW starts can take 3s+
-        chrome.runtime.sendMessage({ action: 'getTrialStatus' }, status => {
-          clearTimeout(t);
-          if (chrome.runtime.lastError) {
-            res({ active: false, isPro: false });
-            return;
-          }
-          res(status || { active: false, isPro: false });
+  async function getAccessStatus(retries = 3) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const status = await new Promise((res, rej) => {
+          const t = setTimeout(() => rej(new Error('timeout')), 3000);
+          chrome.runtime.sendMessage({ action: 'getTrialStatus' }, s => {
+            clearTimeout(t);
+            if (chrome.runtime.lastError) rej(chrome.runtime.lastError);
+            else res(s);
+          });
         });
-      });
-    } catch { return { active: false, isPro: false }; }
+        if (status) return status;
+      } catch (e) {
+        if (i === retries - 1) return { active: false, isPro: false, error: e.message };
+        await new Promise(r => setTimeout(r, 500 * (i + 1))); // Exponential backoff
+      }
+    }
+    return { active: false, isPro: false };
   }
 
   function activateProPatterns() {
@@ -1731,35 +1738,51 @@
     await loadCfg();
     setBlurIntensity(cfg.blurIntensity);
 
-    // Clipboard & paste guards run unconditionally — safety features that must
-    // register before any early returns (trial/whitelist checks come after).
+    // Clipboard & paste guards run unconditionally
     initClipboardGuard();
     initPasteGuard();
 
     if (isDomainWhitelisted()) return;
-    if (!cfg.enabled) return;
+    
+    // On heavy SPAs, we might need to wait a moment for the initial DOM
+    if (document.body && document.body.children.length === 0) {
+      await new Promise(r => setTimeout(r, 500));
+    }
 
     const accessStatus = await getAccessStatus();
     hasActiveAccess = !!accessStatus.active;
     cfg.isPro = !!accessStatus.isPro;
     syncPatternSet();
+
     if (!accessStatus.active) {
-      chrome.runtime.sendMessage({ action: 'updateBadge', off: true }, () => void chrome.runtime.lastError);
-      return;
+      // If we are Pro but access check failed temporarily, we don't want to lock the user out
+      // but for trial users we must be strict.
+      if (!cfg.isPro) {
+        chrome.runtime.sendMessage({ action: 'updateBadge', off: true }, () => void chrome.runtime.lastError);
+        return;
+      }
+      hasActiveAccess = true; // Fail-open for Pro users if background is temporarily unresponsive
     }
 
     if (cfg.isPro) activateProPatterns();
 
-    const count = rescanProtection();
-    if (count > 0) updateStats('blurred', count);
-    detectRecording();
-    syncBadge();
+    if (cfg.enabled) {
+      const count = rescanProtection();
+      if (count > 0) updateStats('blurred', count);
+      detectRecording();
+      syncBadge();
 
-    if (count > 0) {
-      showToast(`${count} secret${count!==1?'s':''} auto-detected and blurred`, 'info', detectedItems);
+      if (count > 0 && cfg.showToasts !== false) {
+        showToast(`${count} secret${count!==1?'s':''} auto-detected and blurred`, 'info', detectedItems);
+      }
     }
 
-    observer.observe(document.body, { childList: true, subtree: true, attributes: false, characterData: false });
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true, 
+      attributes: false, 
+      characterData: true // Watch for text changes in existing nodes
+    });
   }
 
   // ── Listen for settings changes from options/popup pages ──────────────

@@ -623,6 +623,10 @@ async function updateAllBadges() {
   } catch {}
 }
 
+chrome.tabs.onActivated.addListener(activeInfo => {
+  applyBadgeState(activeInfo.tabId);
+});
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === 'loading' && !hasRecordingSessionForTab(tabId)) {
     chrome.action.setBadgeText({ text: '', tabId }).catch(() => {});

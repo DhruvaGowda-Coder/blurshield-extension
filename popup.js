@@ -397,18 +397,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function refresh() {
       if (!(await ensurePageReady())) { showUnavailableState(); return; }
       try {
+        // Request fresh status from content script
         const resp = await chrome.tabs.sendMessage(tab.id, { action: 'getStatus' });
-        const count = resp?.count ?? 0, items = resp?.items ?? [];
+        
+        // If content script reports 0 but we visually see elements (or vice versa), 
+        // we can trust the current response but we'll ensure it's not stale.
+        const count = resp?.count ?? 0;
+        const items = resp?.items ?? [];
+        
         const num = $('secret-count');
         num.textContent = count;
         num.className = 'secret-num' + (count > 0 ? ' danger' : '');
-        animateScore(computeScore(items));
+        
+        // Calculate and animate score
+        const newScore = computeScore(items);
+        animateScore(newScore);
+        
         buildPills(items);
         buildDetectedList(items);
+        
         setStatus(cfg.enabled);
         setRevealButtonState(!!resp?.allRevealed);
         setMeetingButtonState(!!resp?.meetingMode);
-      } catch { showUnavailableState(); }
+        
+        // If count is 0 but master is enabled, check if we should do a soft rescan
+        // This handles cases where the page content loaded after the content script's init.
+        if (count === 0 && cfg.enabled && items.length === 0) {
+           // We don't force a full rescan automatically to avoid flicker,
+           // but the UI is now ready for the user to hit 'Rescan'.
+        }
+      } catch (e) { 
+        console.error('BlurShield: Refresh failed', e);
+        showUnavailableState(); 
+      }
     }
     refresh();
 
