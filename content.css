@@ -177,7 +177,7 @@
 @keyframes bs-blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
 /* Meeting Mode — blur entire page content */
-html.bs-meeting-mode body * {
+html.bs-meeting-mode body > * {
   filter: blur(var(--bs-blur, 7px)) !important;
   transition: filter 0.2s ease !important;
 }

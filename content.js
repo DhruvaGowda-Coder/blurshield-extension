@@ -24,7 +24,6 @@
   let recordingBanner = null;
   let recordingDetectionStarted = false;
   let isAllRevealed = false;
-  const blurredEls = new WeakSet();
   let isMeetingMode = false;
   let meetingBanner = null;
   let hasActiveAccess = false;
@@ -61,13 +60,13 @@
         } catch {
           cfg.isPro = false;
         }
-      chrome.storage.local.get({ customShortcuts: null }, storageLocal => {
-        if (storageLocal.customShortcuts) {
-          cfg.customShortcuts = storageLocal.customShortcuts;
-        }
-        res();
+        chrome.storage.local.get({ customShortcuts: null }, storageLocal => {
+          if (storageLocal.customShortcuts) {
+            cfg.customShortcuts = storageLocal.customShortcuts;
+          }
+          res();
+        });
       });
-    });
     });
   }
 
@@ -215,7 +214,6 @@
     const pNode = textNode.parentNode;
     pNode.replaceChild(frag, textNode);
     span.setAttribute('data-bs-processed','1');
-    blurredEls.add(span);
 
     detectedItems.push({ patternId: pat.id, name: pat.name, service: pat.service, severity: pat.severity });
     return true;
@@ -316,7 +314,6 @@
               container.classList.add('bs-blur');
               container.setAttribute('data-bs-processed', '1');
               container.title = `BlurShield: ${pat.name} — double-click to reveal`;
-              blurredEls.add(container);
 
               if (cfg.revealOnHover) {
                 container.addEventListener('mouseenter', () => {
@@ -1549,6 +1546,7 @@
     if (!cfg.enabled) return;
     // Ignore mutations caused by BlurShield itself
     const realMutations = mutations.filter(mut => {
+      if (mut.type === 'characterData') return false;
       for (const node of mut.addedNodes) {
         if (node.nodeType === Node.ELEMENT_NODE) {
           if (node.classList?.contains('bs-blur') ||
@@ -1780,8 +1778,7 @@
     observer.observe(document.body, { 
       childList: true, 
       subtree: true, 
-      attributes: false, 
-      characterData: true // Watch for text changes in existing nodes
+      attributes: false
     });
   }
 
@@ -1789,17 +1786,14 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
     // Reload config and re-scan when settings change
-    loadCfg().then(async () => {
-      const accessStatus = await getAccessStatus();
-      hasActiveAccess = !!accessStatus.active;
-      cfg.isPro = !!accessStatus.isPro;
+    loadCfg().then(() => {
       syncPatternSet();
       setBlurIntensity(cfg.blurIntensity);
       if (!cfg.isPro || cfg.showBanner === false) hideRecordingBanner();
       detectRecording();
-      if (!cfg.enabled || isDomainWhitelisted() || !accessStatus.active) {
+      if (!cfg.enabled || isDomainWhitelisted() || !hasActiveAccess) {
         clearAll();
-        syncBadge(0, !accessStatus.active || !cfg.enabled);
+        syncBadge(0, !hasActiveAccess || !cfg.enabled);
       } else {
         rescanProtection();
         syncBadge();
@@ -1859,8 +1853,8 @@
     // Escape always closes meeting mode or custom zone tools, regardless of focus
     if (e.key === 'Escape') {
       if (isMeetingMode) exitMeetingMode();
-      if (isSelectingZone) toggleZoneSelect();
-      if (isErasingZone) toggleZoneErase();
+      if (isSelectingZone) endZoneSelector();
+      if (isErasingZone) endZoneEraser();
       
       const toast = document.querySelector('.bs-toast');
       if (toast) toast.querySelector('.bs-toast-close')?.click();

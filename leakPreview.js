@@ -352,6 +352,11 @@
     removePanel();
     stopWatching();
     lpResults = [];
+    lpLastUrl = '';
+  }
+
+  function lpStop() {
+    clearLeakPreview();
   }
 
   // ── MutationObserver — handle SPA re-renders ───────────────────────────
@@ -403,6 +408,19 @@
       clearLeakPreview();
       respond({ ok: true });
       return true;
+    }
+    if (msg.action === 'toggle') {
+      // If BlurShield is being turned off, clear the leak preview
+      if (msg.enabled === false && lpActive) {
+        lpStop();
+      }
+      return false;
+    }
+    if (msg.action === 'keyboard-toggle') {
+      if (msg.enabled === false && lpActive) {
+        lpStop();
+      }
+      return false;
     }
   });
 })();

@@ -4,6 +4,23 @@ importScripts('app-config.js', 'firebase.js');
 const CHECKOUT_URLS = globalThis.BS_APP_CONFIG?.checkoutUrls || {};
 const activeRecordingSessions = new Map();
 
+function persistRecordingSessions() {
+  if (!chrome.storage.session) return;
+  const serialized = [...activeRecordingSessions.entries()].map(([k, v]) => [k, [...v]]);
+  chrome.storage.session.set({ activeRecordingSessions: serialized }).catch?.(() => {});
+}
+
+// Restore recording sessions from storage on SW restart
+if (chrome.storage.session) {
+  chrome.storage.session.get({ activeRecordingSessions: [] }).then((data) => {
+    if (Array.isArray(data?.activeRecordingSessions)) {
+      data.activeRecordingSessions.forEach(([tabId, sessions]) => {
+        activeRecordingSessions.set(tabId, new Set(sessions));
+      });
+    }
+  }).catch(() => {});
+}
+
 function getCheckoutUrl(plan) {
   return (
     CHECKOUT_URLS[plan] ||
@@ -341,6 +358,9 @@ async function handleRecordingStateChange(tabId, state, sessionId) {
     else activeRecordingSessions.delete(tabId);
   }
 
+  // After any add/delete to activeRecordingSessions, persist it:
+  persistRecordingSessions();
+
   const hasRecordingNow = hasAnyRecordingSession();
   if (!hadAnyRecording && hasRecordingNow) {
     await broadcastRecordingState('recording-started');
@@ -551,9 +571,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
       if (!tabId) { sendResponse({ error: 'No active tab' }); return; }
-      chrome.tabs.captureVisibleTab({ format: 'png' }, (dataUrl) => {
-        if (chrome.runtime.lastError) { sendResponse({ error: chrome.runtime.lastError.message }); return; }
-        sendResponse({ dataUrl });
+      chrome.windows.getCurrent({}, (win) => {
+        chrome.tabs.captureVisibleTab(win.id, { format: 'png' }, (dataUrl) => {
+          if (chrome.runtime.lastError) {
+            sendResponse({ error: chrome.runtime.lastError.message });
+            return;
+          }
+          sendResponse({ dataUrl });
+        });
       });
     });
     return true;
@@ -624,7 +649,7 @@ async function updateAllBadges() {
 }
 
 chrome.tabs.onActivated.addListener(activeInfo => {
-  applyBadgeState(activeInfo.tabId);
+  refreshBadgeForTab(activeInfo.tabId);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -637,6 +662,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   if (!activeRecordingSessions.has(tabId)) return;
   const hadAnyRecording = hasAnyRecordingSession();
   activeRecordingSessions.delete(tabId);
+  persistRecordingSessions();
   if (hadAnyRecording && !hasAnyRecordingSession()) {
     broadcastRecordingState('recording-stopped').catch(() => {});
   }

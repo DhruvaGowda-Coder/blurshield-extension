@@ -140,24 +140,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if ($('upgrade-heading')) {
       $('upgrade-heading').textContent = mode === 'license-only'
         ? 'Activate your Pro license'
-        : 'Your 7-day trial has ended';
+        : 'Your 3-day free trial has ended';
     }
 
-    let selected = 'annual';
-    $('pick-annual')?.classList.add('selected');
-    $('pick-monthly')?.addEventListener('click', () => {
-      selected = 'monthly';
-      $('pick-monthly').classList.add('selected');
-      $('pick-annual').classList.remove('selected');
-    });
-    $('pick-annual')?.addEventListener('click', () => {
-      selected = 'annual';
-      $('pick-annual').classList.add('selected');
-      $('pick-monthly').classList.remove('selected');
-    });
+    const monthlyOption = $('pick-monthly');
+    const annualOption = $('pick-annual');
+    monthlyOption?.style.setProperty('display', 'none');
+    annualOption?.style.setProperty('display', 'none');
 
     $('btn-upgrade')?.addEventListener('click', () => {
-      chrome.runtime.sendMessage({ action: 'openCheckout', plan: selected });
+      chrome.runtime.sendMessage({ action: 'openCheckout', plan: 'default' });
     });
 
     $('license-submit')?.addEventListener('click', async () => {
@@ -233,6 +225,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       whitelistedDomains:[], customZones:[]
     }, res));
     cfg.isPro = !!status.isPro;
+    const localData = await new Promise(res => chrome.storage.local.get({ customShortcuts: null }, res));
+    if (localData.customShortcuts) {
+      cfg.customShortcuts = localData.customShortcuts;
+    }
 
     const defaultShortcuts = {
       toggle: 'Alt+Shift+B', reveal: 'Alt+Shift+U',
@@ -320,10 +316,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     setMeetingButtonState(false);
 
     // ── Score helpers ──────────────────────────────────────────────────
-    function computeScore(items) {
-      if (!items?.length) return 100;
+    function computeScore(items, customZoneCount = 0) {
       const w = { critical:30, high:15, medium:8, low:2 };
-      return Math.max(0, 100 - items.reduce((a,i) => a + (w[i.severity]||5), 0));
+      const patternDeduction = (items || []).reduce((a, i) => a + (w[i.severity] || 5), 0);
+      const zoneDeduction = customZoneCount * 3; // custom zones = ~low-medium risk per item
+      return Math.max(0, 100 - patternDeduction - zoneDeduction);
     }
     function animateScore(score) {
       const ring = $('score-ring'), text = $('score-text');
@@ -404,13 +401,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // we can trust the current response but we'll ensure it's not stale.
         const count = resp?.count ?? 0;
         const items = resp?.items ?? [];
+        const customZoneCount = Math.max(0, count - items.length);
         
         const num = $('secret-count');
         num.textContent = count;
         num.className = 'secret-num' + (count > 0 ? ' danger' : '');
         
         // Calculate and animate score
-        const newScore = computeScore(items);
+        const newScore = computeScore(items, customZoneCount);
         animateScore(newScore);
         
         buildPills(items);
@@ -453,7 +451,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         else {
           $('secret-count').textContent = '0';
           animateScore(100);
-          $('severity-pills').innerHTML = '';
+          const pillsEl = $('severity-pills');
+          if (pillsEl) pillsEl.innerHTML = '';
           $('detected-wrap').style.display = 'none';
           setRevealButtonState(false);
         }
@@ -493,19 +492,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('reveal-btn').addEventListener('click', async () => {
       if (!(await ensurePageReady())) return;
       const revealButton = $('reveal-btn');
-      let previousState = false;
+      revealButton.disabled = true;
       try {
         const current = await chrome.tabs.sendMessage(tab.id, { action: 'getStatus' });
-        previousState = !!current?.allRevealed;
         const nextAction = current?.allRevealed ? 'hideAll' : 'revealAll';
-        const nextState = nextAction === 'revealAll';
-        setRevealButtonState(nextState);
-        revealButton.disabled = true;
+        setRevealButtonState(nextAction === 'revealAll');
         const resp = await chrome.tabs.sendMessage(tab.id, { action: nextAction });
         setRevealButtonState(!!resp?.allRevealed);
         await refresh();
       } catch {
-        setRevealButtonState(previousState);
+        setRevealButtonState(false);
       } finally {
         revealButton.disabled = false;
       }
@@ -603,8 +599,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch {
         try {
           await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['leakPreview.js'] });
-          await new Promise(r => setTimeout(r, 80)); // allow script to register listener
-          await chrome.tabs.sendMessage(tab.id, { action: 'leakPreview' });
+          for (let attempt = 0; attempt < 4; attempt++) {
+            await new Promise(r => setTimeout(r, 120 * (attempt + 1)));
+            try {
+              await chrome.tabs.sendMessage(tab.id, { action: 'leakPreview' });
+              break;
+            } catch {}
+          }
         } catch (e) {
           // Silent catch
         }
