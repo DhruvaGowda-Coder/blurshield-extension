@@ -391,14 +391,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ── Refresh ────────────────────────────────────────────────────────
+    let refreshRetries = 0;
+    const MAX_REFRESH_RETRIES = 4;
+    const REFRESH_RETRY_DELAY = 600;
+
     async function refresh() {
       if (!(await ensurePageReady())) { showUnavailableState(); return; }
       try {
         // Request fresh status from content script
         const resp = await chrome.tabs.sendMessage(tab.id, { action: 'getStatus' });
         
-        // If content script reports 0 but we visually see elements (or vice versa), 
-        // we can trust the current response but we'll ensure it's not stale.
         const count = resp?.count ?? 0;
         const items = resp?.items ?? [];
         const customZoneCount = Math.max(0, count - items.length);
@@ -418,11 +420,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         setRevealButtonState(!!resp?.allRevealed);
         setMeetingButtonState(!!resp?.meetingMode);
         
-        // If count is 0 but master is enabled, check if we should do a soft rescan
-        // This handles cases where the page content loaded after the content script's init.
-        if (count === 0 && cfg.enabled && items.length === 0) {
-           // We don't force a full rescan automatically to avoid flicker,
-           // but the UI is now ready for the user to hit 'Rescan'.
+        // If the content script hasn't finished its async init (loading config,
+        // checking trial status, scanning), the data is stale — retry shortly.
+        if (!resp?.initComplete && refreshRetries < MAX_REFRESH_RETRIES) {
+          refreshRetries++;
+          setTimeout(refresh, REFRESH_RETRY_DELAY);
         }
       } catch (e) { 
         console.error('BlurShield: Refresh failed', e);

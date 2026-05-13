@@ -2,10 +2,10 @@
   "manifest_version": 3,
   "name": "BlurShield – Prevent Screen Share Leaks",
   "short_name": "BlurShield",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "minimum_chrome_version": "102",
   "description": "Automatically detects and blurs sensitive credentials on screen before you share. All scanning is 100% local.",
-  "homepage_url": "https://dhruvagowda-coder.github.io/BlurShield-Website/privacy.html",
+  "homepage_url": "https://dhruvagowda-coder.github.io/BlurShield-Website/features.html",
   "permissions": [
     "scripting",
     "identity",

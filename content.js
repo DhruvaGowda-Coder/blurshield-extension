@@ -27,6 +27,7 @@
   let isMeetingMode = false;
   let meetingBanner = null;
   let hasActiveAccess = false;
+  let initComplete = false;
   const domain = location.hostname;
   let lastCopiedSecrets = []; // In-memory: recently copied secret matches — never persisted externally
   let pasteCfg = { pasteWarning: true, pasteTrustedDomains: [] };
@@ -793,7 +794,8 @@
       items: detectedItems,
       domain,
       allRevealed: isAllRevealed,
-      meetingMode: isMeetingMode
+      meetingMode: isMeetingMode,
+      initComplete
     };
   }
 
@@ -1740,7 +1742,7 @@
     initClipboardGuard();
     initPasteGuard();
 
-    if (isDomainWhitelisted()) return;
+    if (isDomainWhitelisted()) { initComplete = true; return; }
     
     // On heavy SPAs, we might need to wait a moment for the initial DOM
     if (document.body && document.body.children.length === 0) {
@@ -1757,6 +1759,7 @@
       // but for trial users we must be strict.
       if (!cfg.isPro) {
         chrome.runtime.sendMessage({ action: 'updateBadge', off: true }, () => void chrome.runtime.lastError);
+        initComplete = true;
         return;
       }
       hasActiveAccess = true; // Fail-open for Pro users if background is temporarily unresponsive
@@ -1780,6 +1783,8 @@
       subtree: true, 
       attributes: false
     });
+
+    initComplete = true;
   }
 
   // ── Listen for settings changes from options/popup pages ──────────────
