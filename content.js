@@ -133,6 +133,7 @@
 
   // ── Should pattern run? ────────────────────────────────────────────────
   function shouldRun(pat) {
+    if (pat.id.startsWith('custom-')) return true; // Custom patterns always run if extension is enabled
     if (pat.id === 'email' && !cfg.blurEmails) return false;
     if (pat.id === 'phone' && !cfg.blurPII) return false;
     if (pat.id === 'creditcard' && !cfg.blurPII) return false;
@@ -229,7 +230,7 @@
 
     for (const node of nodes) {
       const text = node.textContent;
-      if (!text || text.trim().length < 6) continue;
+      if (!text || text.trim().length < 2) continue; // Allow short strings for custom patterns
 
       for (const pat of patterns) {
         if (pat.multiline) continue; // handled separately below
@@ -237,11 +238,11 @@
         if (pat.contextKeys?.length && !hasContextKey(node, pat)) continue;
 
         pat.pattern.lastIndex = 0;
-        const m = pat.pattern.exec(text);
-        pat.pattern.lastIndex = 0;
-
-        if (m?.[0] && m[0].length >= 6) {
-          if (wrapSecret(node, m[0], pat)) { found++; break; }
+        if (m?.[0]) {
+          const isCustom = pat.id.startsWith('custom-');
+          if (isCustom || m[0].length >= 6) {
+            if (wrapSecret(node, m[0], pat)) { found++; break; }
+          }
         }
       }
     }
@@ -257,7 +258,7 @@
         if (line.closest('.bs-blur,.bs-badge') || line.hasAttribute('data-bs-processed')) continue;
         if (line.querySelector('[data-bs-processed]')) continue;
         const lineText = line.textContent;
-        if (!lineText || lineText.trim().length < 8) continue;
+        if (!lineText || lineText.trim().length < 2) continue;
 
         for (const pat of patterns) {
           if (pat.multiline) continue;
@@ -270,7 +271,8 @@
           if (m?.[0] && m[0].length >= 6) {
             // Determine the value to blur: use capture group if available, otherwise full match
             const valueStr = m[1] || m[0];
-            if (valueStr.length < 6) continue;
+            const isCustom = pat.id.startsWith('custom-');
+            if (!isCustom && valueStr.length < 6) continue;
 
             // Try to find this value in a child text node and blur it
             let blurred = false;
@@ -376,7 +378,10 @@
 
   function addPrecheckItem(items, seen, pat, matchValue) {
     const value = (matchValue || '').trim();
-    if (!value || value.length < 6) return false;
+    if (!value) return false;
+    
+    const isCustom = pat.id.startsWith('custom-');
+    if (!isCustom && value.length < 6) return false;
 
     const key = `${pat.id}:${value}`;
     if (seen.has(key)) return false;
@@ -396,7 +401,7 @@
     const textNodes = getTextNodes(root);
     for (const node of textNodes) {
       const text = node.textContent;
-      if (!text || text.trim().length < 6) continue;
+      if (!text || text.trim().length < 2) continue;
 
       for (const pat of patterns) {
         if (pat.multiline) continue;
@@ -406,7 +411,11 @@
         pat.pattern.lastIndex = 0;
         let match;
         while ((match = pat.pattern.exec(text))) {
-          if (pushMatch(pat, match[1] || match[0])) return items;
+          const mStr = match[1] || match[0];
+          const isCustom = pat.id.startsWith('custom-');
+          if (isCustom || (mStr && mStr.length >= 6)) {
+            if (pushMatch(pat, mStr)) return items;
+          }
           if (!pat.pattern.global) break;
         }
         pat.pattern.lastIndex = 0;
@@ -422,7 +431,7 @@
         if (line.closest('.bs-blur,.bs-badge') || line.hasAttribute('data-bs-processed')) continue;
         if (line.querySelector('[data-bs-processed]')) continue;
         const lineText = line.textContent;
-        if (!lineText || lineText.trim().length < 8) continue;
+        if (!lineText || lineText.trim().length < 2) continue;
 
         for (const pat of patterns) {
           if (pat.multiline) continue;
@@ -431,7 +440,11 @@
           pat.pattern.lastIndex = 0;
           let match;
           while ((match = pat.pattern.exec(lineText))) {
-            if (pushMatch(pat, match[1] || match[0])) return items;
+            const mStr = match[1] || match[0];
+            const isCustom = pat.id.startsWith('custom-');
+            if (isCustom || (mStr && mStr.length >= 6)) {
+              if (pushMatch(pat, mStr)) return items;
+            }
             if (!pat.pattern.global) break;
           }
           pat.pattern.lastIndex = 0;
